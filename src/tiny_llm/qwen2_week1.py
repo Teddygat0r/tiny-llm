@@ -1,6 +1,7 @@
 import mlx.core as mx
-from .basics import linear, silu
-from .attention import scaled_dot_product_attention_grouped
+
+from tiny_llm_ref.attention import scaled_dot_product_attention_grouped
+from tiny_llm_ref.basics import linear, silu
 from .layer_norm import RMSNorm
 from .positional_encoding import RoPE
 from typing import Any

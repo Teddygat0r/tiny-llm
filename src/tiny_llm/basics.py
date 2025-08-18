@@ -19,4 +19,4 @@ def linear(
 
 
 def silu(x: mx.array) -> mx.array:
-    return x * mx.rsqrt(1 + mx.exp(-x))
+    return x / (1 + mx.exp(-x))
