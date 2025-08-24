@@ -28,12 +28,23 @@ class BatchingKvCache(TinyKvCache):
 
 class TinyKvFullCache(TinyKvCache):
     def __init__(self):
-        pass
+        self.key = None
+        self.value = None
+        self.offset = 0
 
     def update_and_fetch(
         self, key: mx.array, value: mx.array
     ) -> tuple[mx.array, mx.array, int]:
-        pass
+        if self.key is None:
+            self.key = key
+            self.value = value
+            self.offset = key.shape[1]
+        else:
+            self.key = mx.concat([self.key, key], axis=1)
+            self.value = mx.concat([self.value, value], axis=1)
+            self.offset = self.key.shape[1]
+
+        return self.key, self.value, self.offset
 
 
 class TinyKvRotatingCache(TinyKvCache):

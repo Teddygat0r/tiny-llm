@@ -27,6 +27,7 @@ def simple_generate(
     detokenizer = tokenizer.detokenizer
 
     detokenizer.reset()
+    print(tokenizer.eos_token_id)
 
     while tokens[-1].item() != tokenizer.eos_token_id:
         token = _step(tokens)

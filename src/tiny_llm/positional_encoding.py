@@ -41,18 +41,30 @@ class RoPE:
     ) -> mx.array:
         N, S, H, D = x.shape
 
+        if offset is not None:
+            if isinstance(offset, slice):
+                assert offset.stop - offset.start == S, f"offset must be of length {S}"
+            elif isinstance(offset, list):
+                assert len(offset) == N, (
+                    f"offsets must have the same length as batch size {N}"
+                )
+                for o in offset:
+                    assert o.stop - o.start == S, f"offset must be of length {S}"
+                offset = mx.array([list(range(i.start, i.stop)) for i in offset])
+
         costheta = self.cosfreq[:S, :] if offset is None else self.cosfreq[offset, :]
         sintheta = self.sinfreq[:S, :] if offset is None else self.sinfreq[offset, :]
         
         if self.traditional:
-            x = x.reshape(N, S, H, D // 2, 2)
+            x = x.reshape(N, S, H, D // 2, 2) # (1,2,3,4,5,6)
             x1 = x[..., 0]
             x2 = x[..., 1]
+
             rx1, rx2 = self.rope(x1, x2, costheta, sintheta)
             rx = mx.stack([rx1, rx2], axis=-1)
         else:
-            x1 = x[..., :D // 2]
-            x2 = x[..., D // 2:]
+            x1 = x[..., :D // 2] # (1,2,3)
+            x2 = x[..., D // 2:] #(4,5,6)
             rx1, rx2 = self.rope(x1, x2, costheta, sintheta)
             rx = mx.concat([rx1, rx2], axis=-1)
         
