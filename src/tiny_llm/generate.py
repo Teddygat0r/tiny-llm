@@ -53,7 +53,7 @@ def simple_generate_with_kv_cache(
         sampler = lambda x: mx.argmax(x, axis=-1)
         y = sampler(logprobs)
 
-        return mx.argmax(logits, axis=-1)
+        return y
 
     tokens = mx.array(tokenizer.encode(prompt))
     detokenizer = tokenizer.detokenizer
@@ -63,10 +63,10 @@ def simple_generate_with_kv_cache(
 
     while tokens[-1].item() != tokenizer.eos_token_id:
         token = _step(tokens, offset, kv_cache)
-        mx.eval(token)
+
         tokens = mx.concat([tokens, token])
         detokenizer.add_token(token.item())
-        offset = tokens.size
+        offset += tokens.size
 
         print(detokenizer.last_segment, end="", flush=True)
 

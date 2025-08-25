@@ -39,12 +39,16 @@ class TinyKvFullCache(TinyKvCache):
             self.key = key
             self.value = value
             self.offset = key.shape[2]
+            return self.key, self.value, 0
         else:
             self.key = mx.concat([self.key, key], axis=2)
             self.value = mx.concat([self.value, value], axis=2)
-            self.offset = self.key.shape[2]
+            self.offset += key.shape[2]
+            return self.key, self.value, self.offset
+    
+    def get_offset(self):
+        return self.offset
 
-        return self.key, self.value, self.offset
 
 
 class TinyKvRotatingCache(TinyKvCache):
