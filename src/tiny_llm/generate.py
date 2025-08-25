@@ -1,5 +1,7 @@
 import mlx.core as mx
 from mlx_lm.tokenizer_utils import TokenizerWrapper
+
+from tiny_llm.kv_cache import TinyKvFullCache
 from .qwen2_week1 import Qwen2ModelWeek1
 from .qwen2_week2 import Qwen2ModelWeek2
 from typing import Callable
@@ -43,7 +45,30 @@ def simple_generate(
 def simple_generate_with_kv_cache(
     model: Qwen2ModelWeek2, tokenizer: TokenizerWrapper, prompt: str
 ) -> str:
-    pass
+    kv_cache = [TinyKvFullCache() for _ in range(model.num_hidden_layers)]
+    def _step(y, offset, kv_cache):
+        output_logits = model(y[None], offset=offset, cache=kv_cache)
+        logits = output_logits[:, -1, :]
+        logprobs = logits - mx.logsumexp(logits, keepdims=True)
+        sampler = lambda x: mx.argmax(x, axis=-1)
+        y = sampler(logprobs)
+
+        return mx.argmax(logits, axis=-1)
+
+    tokens = mx.array(tokenizer.encode(prompt))
+    detokenizer = tokenizer.detokenizer
+
+    detokenizer.reset()
+    offset = tokens.size
+
+    while tokens[-1].item() != tokenizer.eos_token_id:
+        token = _step(tokens, offset, kv_cache)
+        mx.eval(token)
+        tokens = mx.concat([tokens, token])
+        detokenizer.add_token(token.item())
+        offset = tokens.size
+
+        print(detokenizer.last_segment, end="", flush=True)
 
 
 def batch_generate(

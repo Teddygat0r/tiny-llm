@@ -64,10 +64,10 @@ class Qwen2MultiHeadAttention:
         q = self.rope(q, offset=offset_slice)
         k = self.rope(k, offset=offset_slice)
 
-        k, v, _ = cache.update_and_fetch(k, v)
         q = q.transpose(0, 2, 1, 3)
         k = k.transpose(0, 2, 1, 3)
         v = v.transpose(0, 2, 1, 3)
+        k, v, _ = cache.update_and_fetch(k, v)
 
         S = k.shape[-2]
 
@@ -149,7 +149,7 @@ class Qwen2TransformerBlock:
 
 
 class Qwen2ModelWeek2:
-    def __init__(self, mlx_model: Any):
+    def __init__(self, mlx_model: Any, enable_flash_attn=False):
         self.num_hidden_layers = mlx_model.args.num_hidden_layers
         self.hidden_size = mlx_model.args.hidden_size
         self.vocab_size = mlx_model.args.vocab_size

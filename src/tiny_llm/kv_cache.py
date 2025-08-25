@@ -38,11 +38,11 @@ class TinyKvFullCache(TinyKvCache):
         if self.key is None:
             self.key = key
             self.value = value
-            self.offset = key.shape[1]
+            self.offset = key.shape[2]
         else:
-            self.key = mx.concat([self.key, key], axis=1)
-            self.value = mx.concat([self.value, value], axis=1)
-            self.offset = self.key.shape[1]
+            self.key = mx.concat([self.key, key], axis=2)
+            self.value = mx.concat([self.value, value], axis=2)
+            self.offset = self.key.shape[2]
 
         return self.key, self.value, self.offset
 
